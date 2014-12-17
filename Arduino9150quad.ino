@@ -63,6 +63,7 @@ MPU9150Lib MPU;                                              // the MPU object
 byte inputpins[] = {CH1, CH2, CH3, CH4};
 volatile float rfInput[4] = {0};
 volatile byte currentCH = 0;
+unsigned long time;
 long throttle = 0;
 Servo esc1;
 
@@ -80,9 +81,10 @@ void setup()
   
   esc1.attach(ESC1);
     
-    Timer1.initialize(2200);    //TODO: set this to a timout duration and add an interrupt for connection lost
-    Timer1.stop();                //stop the counter
-    Timer1.restart();            //set the clock to zero
+//TODO: set this to a timout duration and add an interrupt for connection lost
+  
+  time = micros(); //start the initial timer position
+
   
 }
 
@@ -107,12 +109,9 @@ void loop()
 void pinChange(){
   if (PCintPort::arduinoPin == inputpins[currentCH]){
     if (PCintPort::pinState == HIGH){
-      Timer1.restart();
-      Timer1.start();
+      time = micros();
     }else{
-      rfInput[currentCH] = Timer1.read();
-      Timer1.stop();
-      //PCintPort::detachInterrupt(inputpins[currentCH]);     //stop listening to this pin
+      rfInput[currentCH] = micros() - time;
       currentCH++;                                          //change which pin we're going to listen to
       currentCH = currentCH % 4;
 
